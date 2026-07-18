@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 class Subject(Base):
     __tablename__ = "subjects"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)

@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 class Topic(Base):
     __tablename__ = "topics"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)

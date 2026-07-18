@@ -20,7 +20,6 @@ class TaskDifficulty(str, Enum):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     condition: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str] = mapped_column(String, nullable=False)
     solution: Mapped[str] = mapped_column(Text, nullable=True)

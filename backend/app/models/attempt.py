@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 class Attempt(Base):
     __tablename__ = "attempts"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_answer: Mapped[str] = mapped_column(String, nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
