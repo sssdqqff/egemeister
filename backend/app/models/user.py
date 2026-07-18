@@ -1,0 +1,30 @@
+from sqlalchemy import Integer, String, func, DateTime, Boolean
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from datetime import datetime
+
+from app.database import Base
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .attempt import Attempt
+    from .session import Session
+    from .profile import Profile
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    role: Mapped[str] = mapped_column(String, default="user")
+
+    attempts: Mapped[list["Attempt"]] = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
+
+    sessions: Mapped[list["Session"]] = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+
+    profile: Mapped["Profile"] = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
