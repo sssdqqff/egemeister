@@ -1,6 +1,7 @@
 from sqlalchemy import DateTime, Integer, String, Text, func, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+from enum import Enum
 
 from app.database import Base
 
@@ -10,6 +11,10 @@ if TYPE_CHECKING:
     from .attempt import Attempt
     from .subject import Subject
 
+class Taskload(Enum):
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -18,7 +23,7 @@ class Task(Base):
     condition: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str] = mapped_column(String, nullable=False)
     solution: Mapped[str] = mapped_column(Text, nullable=True)
-    difficulty: Mapped[str] = mapped_column(String, default="medium", nullable=False)  # easy, medium, hard
+    difficulty: Mapped[Taskload] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
