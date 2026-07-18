@@ -1,6 +1,8 @@
 from sqlalchemy import Integer, String, func, DateTime, Boolean
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+from enum import Enum
 
 from app.database import Base
 
@@ -10,6 +12,9 @@ if TYPE_CHECKING:
     from .session import Session
     from .profile import Profile
 
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 class User(Base):
     __tablename__ = "users"
@@ -21,7 +26,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    role: Mapped[str] = mapped_column(String, default="user")
+    role: Mapped[UserRole] = mapped_column(SqlEnum(UserRole), default=UserRole.USER)
 
     attempts: Mapped[list["Attempt"]] = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
 
