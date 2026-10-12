@@ -22,3 +22,6 @@ class ProfileResponse(BaseModel):
     last_login: datetime | None = Field(None)
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProfileAvatarUpdate(BaseModel):
+    avatar_url: HttpUrl | None = Field(None)
