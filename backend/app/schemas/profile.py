@@ -1,25 +1,24 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from datetime import datetime
-from typing import Optional
 
 
 class ProfileCreate(BaseModel):
-    avatar_url: str | None = Field(None, description="User avatar URL")
+    avatar_url: HttpUrl | None = Field(None, description="User avatar URL")
 
 
 class ProfileUpdate(BaseModel):
-    avatar_url: str | None = Field(None)
-    xp: int | None = Field(None)
-    level: int | None = Field(None)
-    streak: int | None = Field(None)
+    avatar_url: HttpUrl | None = Field(None)
+    xp: int | None = Field(None, ge=0)
+    level: int | None = Field(None, ge=1)
+    streak: int | None = Field(None, ge=0)
 
 
 class ProfileResponse(BaseModel):
-    id: int = Field(..., description="Profile unique identifier")
-    avatar_url: str | None = Field(None)
-    xp: int = Field(..., description="Experience points")
-    level: int = Field(..., description="User level")
-    streak: int = Field(..., description="Login streak")
+    id: int
+    avatar_url: HttpUrl | None
+    xp: int = Field(..., ge=0, description="Experience points")
+    level: int = Field(..., ge=1, description="User level")
+    streak: int = Field(..., ge=0, description="Login streak")
     last_login: datetime | None = Field(None)
 
     model_config = ConfigDict(from_attributes=True)
