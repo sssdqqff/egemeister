@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 51a27f0be8e1
+Revision ID: d6981f683d3a
 Revises: 
-Create Date: 2026-07-19 09:52:27.509596
+Create Date: 2026-10-12 18:12:45.319622
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '51a27f0be8e1'
+revision: str = 'd6981f683d3a'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,8 +27,8 @@ def upgrade() -> None:
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_subjects')),
+    sa.UniqueConstraint('name', name=op.f('uq_subjects_name'))
     )
     op.create_index(op.f('ix_subjects_slug'), 'subjects', ['slug'], unique=True)
     op.create_table('users',
@@ -39,7 +39,7 @@ def upgrade() -> None:
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('role', sa.Enum('USER', 'ADMIN', name='userrole'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_users'))
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
@@ -53,9 +53,9 @@ def upgrade() -> None:
     sa.Column('streak', sa.Integer(), nullable=False),
     sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('user_id')
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_profiles_user_id_users')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_profiles')),
+    sa.UniqueConstraint('user_id', name=op.f('uq_profiles_user_id'))
     )
     op.create_table('sessions',
     sa.Column('title', sa.String(), nullable=True),
@@ -67,8 +67,8 @@ def upgrade() -> None:
     sa.Column('difficulty', sa.Enum('EASY', 'MEDIUM', 'HARD', name='sessiondifficulty'), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_sessions_user_id_users')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_sessions'))
     )
     op.create_table('topics',
     sa.Column('name', sa.String(), nullable=False),
@@ -78,8 +78,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('subject_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['subject_id'], ['subjects.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['subject_id'], ['subjects.id'], name=op.f('fk_topics_subject_id_subjects'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_topics'))
     )
     op.create_index(op.f('ix_topics_slug'), 'topics', ['slug'], unique=True)
     op.create_table('tasks',
@@ -91,8 +91,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('topic_id', sa.Integer(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['topic_id'], ['topics.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['topic_id'], ['topics.id'], name=op.f('fk_tasks_topic_id_topics'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_tasks'))
     )
     op.create_table('attempts',
     sa.Column('user_answer', sa.String(), nullable=False),
@@ -102,10 +102,10 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('session_id', sa.Integer(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], ),
-    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], name=op.f('fk_attempts_session_id_sessions')),
+    sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], name=op.f('fk_attempts_task_id_tasks')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_attempts_user_id_users')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_attempts'))
     )
     # ### end Alembic commands ###
 

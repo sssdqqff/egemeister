@@ -1,30 +1,35 @@
-from sqlalchemy import Integer, String, func, ForeignKey, DateTime
-from sqlalchemy import Enum as SqlEnum
-from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
+
+from sqlalchemy import String, func, ForeignKey, DateTime
+from sqlalchemy import Enum as SqlEnum
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.database import Base
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .attempt import Attempt
     from .user import User
+
 
 class SessionStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
 
+
 class SessionDifficulty(str, Enum):
     EASY = "easy"
     MEDIUM = "medium"
     HARD = "hard"
 
+
 class SessionType(str, Enum):
     PRACTICE = "practice"
     EXAM = "exam"
     CHALLENGE = "challenge"
+
 
 class Session(Base):
     __tablename__ = "sessions"

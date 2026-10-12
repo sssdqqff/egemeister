@@ -1,10 +1,11 @@
-from sqlalchemy import Integer, String, func, ForeignKey, Text, DateTime
-from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func, true
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .subject import Subject
     from .task import Task
@@ -12,14 +13,19 @@ if TYPE_CHECKING:
 
 class Topic(Base):
     __tablename__ = "topics"
+    __table_args__ = (
+        UniqueConstraint("subject_id", "number"),
+        UniqueConstraint("subject_id", "slug"),
+    )
 
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    slug: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    number: Mapped[int] = mapped_column(Integer, nullable=False)  # номер задания КИМ
+    name: Mapped[str] = mapped_column(String, nullable=False)     # например "Логические выражения"
+    slug: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default=true(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
-    subject: Mapped["Subject"] = relationship("Subject", back_populates="topics")
-    
-    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="topic", cascade="all, delete-orphan")
+    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="RESTRICT"), nullable=False,)
+    subject: Mapped["Subject"] = relationship("Subject", back_populates="topics", lazy="raise")
+
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="topic", lazy="raise")
