@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 class Topic(Base):
     __tablename__ = "topics"
     __table_args__ = (
-        UniqueConstraint("subject_id", "number"),
-        UniqueConstraint("subject_id", "slug"),
+    UniqueConstraint("subject_id", "number", name="uq_topics_subject_number"),
+    UniqueConstraint("subject_id", "slug", name="uq_topics_subject_slug"),
     )
 
     number: Mapped[int] = mapped_column(Integer, nullable=False)  # номер задания КИМ
