@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -42,13 +41,9 @@ class TopicRepository:
 
     async def create_topic(self, topic_data: TopicCreate) -> Topic:
         new_topic = Topic(**topic_data.model_dump())
-        try:
-            self.db.add(new_topic)
-            await self.db.commit()
-            await self.db.refresh(new_topic)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        self.db.add(new_topic)
+        await self.db.flush()
+        await self.db.refresh(new_topic)
         return new_topic
 
     async def update_topic(self, topic_id: int, topic_data: TopicUpdate) -> Optional[Topic]:
@@ -57,22 +52,14 @@ class TopicRepository:
             return None
         for key, value in topic_data.model_dump(exclude_unset=True).items():
             setattr(topic, key, value)
-        try:
-            await self.db.commit()
-            await self.db.refresh(topic)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        await self.db.flush()
+        await self.db.refresh(topic)
         return topic
 
     async def deactivate_topic(self, topic_id: int) -> bool:
         topic = await self.get_by_id(topic_id)
         if not topic:
             return False
-        try:
-            topic.is_active = False
-            await self.db.commit()
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        topic.is_active = False
+        await self.db.flush()
         return True
