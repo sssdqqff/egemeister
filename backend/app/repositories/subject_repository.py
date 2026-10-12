@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -38,13 +37,9 @@ class SubjectRepository:
 
     async def create_subject(self, subject_data: SubjectCreate) -> Subject:
         new_subject = Subject(**subject_data.model_dump())
-        try:
-            self.db.add(new_subject)
-            await self.db.commit()
-            await self.db.refresh(new_subject)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        self.db.add(new_subject)
+        await self.db.flush()
+        await self.db.refresh(new_subject)
         return new_subject
 
     async def update_subject(self, subject_id: int, subject_data: SubjectUpdate) -> Optional[Subject]:
@@ -53,22 +48,14 @@ class SubjectRepository:
             return None
         for key, value in subject_data.model_dump(exclude_unset=True).items():
             setattr(subject, key, value)
-        try:
-            await self.db.commit()
-            await self.db.refresh(subject)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        await self.db.flush()
+        await self.db.refresh(subject)
         return subject
 
     async def deactivate_subject(self, subject_id: int) -> bool:
         subject = await self.get_by_id(subject_id)
         if not subject:
             return False
-        try:
-            subject.is_active = False
-            await self.db.commit()
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        subject.is_active = False
+        await self.db.flush()
         return True
