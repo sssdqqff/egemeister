@@ -30,3 +30,7 @@ class UserResponse(BaseModel):
     last_login: datetime | None = Field(None)
 
     model_config = ConfigDict(from_attributes=True)
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6, max_length=100)
