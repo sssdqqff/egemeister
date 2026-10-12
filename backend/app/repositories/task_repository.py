@@ -1,7 +1,6 @@
 from typing import List, Optional, Sequence
 
 from sqlalchemy import func, select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -71,13 +70,9 @@ class TaskRepository:
 
     async def create_task(self, task_data: TaskCreate) -> Task:
         new_task = Task(**task_data.model_dump())
-        try:
-            self.db.add(new_task)
-            await self.db.commit()
-            await self.db.refresh(new_task)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        self.db.add(new_task)
+        await self.db.flush()
+        await self.db.refresh(new_task)
         return new_task
 
     async def update_task(self, task_id: int, task_data: TaskUpdate) -> Optional[Task]:
@@ -86,22 +81,14 @@ class TaskRepository:
             return None
         for key, value in task_data.model_dump(exclude_unset=True).items():
             setattr(task, key, value)
-        try:
-            await self.db.commit()
-            await self.db.refresh(task)
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        await self.db.flush()
+        await self.db.refresh(task)
         return task
 
     async def deactivate_task(self, task_id: int) -> bool:
         task = await self.get_by_id(task_id)
         if not task:
             return False
-        try:
-            task.is_active = False
-            await self.db.commit()
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise
+        task.is_active = False
+        await self.db.flush()
         return True
