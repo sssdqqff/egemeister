@@ -1,24 +1,32 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
+
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     # app
-    app_name: str = "My Awesome App"
-    debug_mode: bool = True
+    app_name: str = "Egemeister"
+    debug_mode: bool = False
 
     # database
-    DB_HOST: str
-    DB_PORT: int
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
+    db_host: str
+    db_port: int = 5432
+    db_user: str
+    db_password: str
+    db_name: str
+    database_echo: bool = False
 
     @property
-    def DATABASE_URL_asyncpg(self) -> str:
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-    
-    @property
-    def DATABASE_URL_psycopg(self) -> str:
-        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    def database_url(self) -> URL:
+        return URL.create(
+            drivername="postgresql+asyncpg",
+            username=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name,
+        )
 
     # jwt auth
     secret_key: str
@@ -36,9 +44,6 @@ class Settings(BaseSettings):
     # static
     static_dir: str = "static"
     images_dir: str = "static/images"
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()
