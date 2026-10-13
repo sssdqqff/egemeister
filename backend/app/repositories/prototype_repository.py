@@ -44,7 +44,7 @@ class PrototypeRepository:
         await self.db.refresh(prototype)
         return prototype
 
-    async def delete_prototype(self, prototype_id: int) -> bool:
+    async def deactivate_prototype(self, prototype_id: int) -> bool:
         prototype = await self.get_by_id(prototype_id)
         if not prototype:
             return False
