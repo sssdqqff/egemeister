@@ -56,3 +56,12 @@ class SubjectService:
         if not deactivated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
         await self.db.commit()
+
+    async def activate_subject(self, subject_id: int) -> None:
+        activated = await self.subject_repository.activate_subject(subject_id)
+        if not activated:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Subject not found"
+            )
+        await self.db.commit()

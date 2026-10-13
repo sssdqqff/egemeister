@@ -59,3 +59,11 @@ class SubjectRepository:
         subject.is_active = False
         await self.db.flush()
         return True
+
+    async def activate_subject(self, subject_id: int) -> bool:
+        subject = await self.get_by_id(subject_id)
+        if not subject:
+            return False
+        subject.is_active = True
+        await self.db.flush()
+        return True

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.dependencies import get_db
 from app.services.subject_service import SubjectService
 from app.schemas.subject import SubjectResponse, SubjectCreate, SubjectUpdate
 
@@ -33,6 +33,14 @@ async def update_subject(subject_id: int, subject_data: SubjectUpdate, service: 
     return await service.update_subject(subject_id, subject_data)
 
 
+@router.patch("/{subject_id}/activate", status_code=status.HTTP_204_NO_CONTENT)
+async def activate_subject(
+    subject_id: int,
+    service: SubjectService = Depends(get_subject_service)
+):
+    await service.activate_subject(subject_id)
+
+
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_subject(subject_id: int, service: SubjectService = Depends(get_subject_service)):
-    await service.delete_subject(subject_id)
+    await service.deactivate_subject(subject_id)
