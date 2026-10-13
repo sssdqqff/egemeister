@@ -55,6 +55,7 @@ async def main() -> None:
         base_url=settings.api_base_url,
         headers={"X-Bot-Key": settings.bot_api_key},
         timeout=10,
+        trust_env=False,
     ) as http:
         await dp.start_polling(bot, http=http)
 
