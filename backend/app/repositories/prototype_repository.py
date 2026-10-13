@@ -48,7 +48,7 @@ class PrototypeRepository:
         prototype = await self.get_by_id(prototype_id)
         if not prototype:
             return False
-        await self.db.delete(prototype)
+        prototype.is_active = False
         await self.db.flush()
         return True
 
