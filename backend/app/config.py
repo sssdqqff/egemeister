@@ -61,5 +61,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
     ]
 
+    admin_telegram_id: int | None = None
+
 
 settings = Settings()

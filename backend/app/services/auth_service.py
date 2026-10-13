@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.rate_limit import login_limiter
 from app.repositories.auth_repository import AuthRepository
 from app.repositories.profile_repository import ProfileRepository
@@ -39,15 +39,21 @@ class AuthService:
         if user:
             if first_name and user.first_name != first_name:
                 user.first_name = first_name
-            return user
-        try:
-            user = await self.user_repository.create_telegram_user(telegram_id, first_name)
-            await self.profile_repository.create_profile(user.id)
-        except IntegrityError:
-            await self.db.rollback()
-            user = await self.user_repository.get_by_telegram_id(telegram_id)
-            if user is None:
-                raise
+        else:
+            try:
+                user = await self.user_repository.create_telegram_user(telegram_id, first_name)
+                await self.profile_repository.create_profile(user.id)
+            except IntegrityError:
+                await self.db.rollback()
+                user = await self.user_repository.get_by_telegram_id(telegram_id)
+                if user is None:
+                    raise
+
+        if settings.admin_telegram_id and user.telegram_id == settings.admin_telegram_id:
+            if user.role != UserRole.ADMIN:
+                user.role = UserRole.ADMIN
+                await self.db.flush()
+
         return user
 
     async def issue_login_code(self, telegram_id: int, first_name: str | None) -> BotLoginCodeResponse:
