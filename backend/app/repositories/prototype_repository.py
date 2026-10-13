@@ -52,6 +52,14 @@ class PrototypeRepository:
         await self.db.flush()
         return True
 
+    async def activate_prototype(self, prototype_id: int) -> bool:
+        prototype = await self.get_by_id(prototype_id)
+        if not prototype:
+            return False
+        prototype.is_active = True
+        await self.db.flush()
+        return True
+
     async def has_tasks(self, prototype_id: int) -> bool:
         stmt = select(Task.id).where(Task.prototype_id == prototype_id).limit(1)
         result = await self.db.execute(stmt)
