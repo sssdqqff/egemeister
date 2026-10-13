@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.session import Session, SessionStatus
 from app.repositories.attempt_repository import AttemptRepository
 from app.repositories.session_repository import SessionRepository
-from app.schemas.session import SessionCreate, SessionResponse
+from app.schemas.session import SessionCreate, SessionResponse, SessionUpdate
 from app.schemas.task import TaskResponse
 from app.services.task_service import TaskService
 
@@ -138,3 +138,21 @@ class SessionService:
             accuracy=round(correct / total * 100, 1) if total else 0.0,
             duration_seconds=int((end - session.created_at).total_seconds()),
         )
+
+    async def update_user_session(
+        self,
+        session_id: int,
+        user_id: int,
+        session_data: SessionUpdate,
+    ) -> SessionResponse:
+        session = await self._get_owned_session(session_id, user_id)
+        if session.status != SessionStatus.IN_PROGRESS:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Session is already finished",
+            )
+        for field, value in session_data.model_dump(exclude_unset=True).items():
+            setattr(session, field, value)
+        await self.db.commit()
+        await self.db.refresh(session)
+        return SessionResponse.model_validate(session)

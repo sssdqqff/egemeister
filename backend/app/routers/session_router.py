@@ -28,7 +28,7 @@ async def get_session_by_id(
     user: User = Depends(get_current_user),
     service: SessionService = Depends(get_session_service),
 ):
-    return await service.get_user_session_by_id(session_id, user.id)
+    return await service.get_session_by_id(session_id, user.id)
 
 
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
