@@ -65,3 +65,22 @@ class SubjectService:
                 detail="Subject not found"
             )
         await self.db.commit()
+
+    async def delete_subject_permanently(self, subject_id: int) -> None:
+        subject = await self.subject_repository.get_by_id(subject_id)
+        if not subject:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
+        if await self.subject_repository.has_topics(subject_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete subject with existing topics"
+            )
+        try:
+            await self.subject_repository.delete_subject_permanently(subject)
+            await self.db.commit()
+        except IntegrityError:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete subject because it has related records"
+            )

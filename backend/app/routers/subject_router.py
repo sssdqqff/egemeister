@@ -44,3 +44,11 @@ async def activate_subject(
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_subject(subject_id: int, service: SubjectService = Depends(get_subject_service)):
     await service.deactivate_subject(subject_id)
+
+
+@router.delete("/{subject_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_subject_permanently(
+    subject_id: int,
+    service: SubjectService = Depends(get_subject_service),
+):
+    await service.delete_subject_permanently(subject_id)

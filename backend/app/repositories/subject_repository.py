@@ -7,6 +7,8 @@ from sqlalchemy.orm import selectinload
 from app.models.subject import Subject
 from app.schemas.subject import SubjectCreate, SubjectUpdate
 
+from app.models.topic import Topic
+
 
 class SubjectRepository:
     def __init__(self, db: AsyncSession):
@@ -67,3 +69,12 @@ class SubjectRepository:
         subject.is_active = True
         await self.db.flush()
         return True
+
+    async def has_topics(self, subject_id: int) -> bool:
+        stmt = select(Topic.id).where(Topic.subject_id == subject_id).limit(1)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def delete_subject_permanently(self, subject: Subject) -> None:
+        await self.db.delete(subject)
+        await self.db.flush()
