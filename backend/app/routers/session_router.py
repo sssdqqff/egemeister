@@ -48,3 +48,12 @@ async def update_session(
     service: SessionService = Depends(get_session_service),
 ):
     return await service.update_user_session(session_id, user.id, session_data)
+
+
+@router.patch("/{session_id}/finish", response_model=SessionResponse, status_code=status.HTTP_200_OK)
+async def finish_session(
+    session_id: int,
+    user: User = Depends(get_current_user),
+    service: SessionService = Depends(get_session_service),
+):
+    return await service.finish_session(session_id, user.id)
