@@ -63,3 +63,13 @@ class TopicRepository:
         topic.is_active = False
         await self.db.flush()
         return True
+
+    async def activate_topic(self, topic_id: int) -> bool:
+        topic = await self.get_by_id(topic_id)
+
+        if not topic:
+            return False
+
+        topic.is_active = True
+        await self.db.flush()
+        return True

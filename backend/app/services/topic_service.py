@@ -66,3 +66,14 @@ class TopicService:
         if not deactivated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
         await self.db.commit()
+
+    async def activate_topic(self, topic_id: int) -> None:
+        activated = await self.topic_repository.activate_topic(topic_id)
+
+        if not activated:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Topic not found",
+            )
+
+        await self.db.commit()

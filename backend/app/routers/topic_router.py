@@ -35,4 +35,14 @@ async def update_topic(topic_id: int, topic_data: TopicUpdate, service: TopicSer
 
 @router.delete("/{topic_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_topic(topic_id: int, service: TopicService = Depends(get_topic_service)):
-    await service.delete_topic(topic_id)
+    await service.deactivate_topic(topic_id)
+
+@router.patch(
+    "/{topic_id}/activate",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def activate_topic(
+    topic_id: int,
+    service: TopicService = Depends(get_topic_service),
+) -> None:
+    await service.activate_topic(topic_id)
