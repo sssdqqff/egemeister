@@ -77,3 +77,22 @@ class TopicService:
             )
 
         await self.db.commit()
+
+    async def delete_topic_permanently(self, topic_id: int) -> None:
+        topic = await self.topic_repository.get_by_id(topic_id)
+        if not topic:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+        if await self.topic_repository.has_tasks(topic_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete topic with existing tasks"
+            )
+        try:
+            await self.topic_repository.delete_topic_permanently(topic)
+            await self.db.commit()
+        except IntegrityError:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete topic because it has related records"
+            )

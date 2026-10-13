@@ -46,3 +46,10 @@ async def activate_topic(
     service: TopicService = Depends(get_topic_service),
 ) -> None:
     await service.activate_topic(topic_id)
+
+@router.delete("/{topic_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_topic_permanently(
+    topic_id: int,
+    service: TopicService = Depends(get_topic_service),
+) -> None:
+    await service.delete_topic_permanently(topic_id)

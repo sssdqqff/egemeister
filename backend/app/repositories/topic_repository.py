@@ -7,6 +7,8 @@ from sqlalchemy.orm import selectinload
 from app.models.topic import Topic
 from app.schemas.topic import TopicCreate, TopicUpdate
 
+from app.models.task import Task
+
 
 class TopicRepository:
     def __init__(self, db: AsyncSession):
@@ -73,3 +75,12 @@ class TopicRepository:
         topic.is_active = True
         await self.db.flush()
         return True
+
+    async def has_tasks(self, topic_id: int) -> bool:
+        stmt = select(Task.id).where(Task.topic_id == topic_id).limit(1)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def delete_topic_permanently(self, topic: Topic) -> None:
+        await self.db.delete(topic)
+        await self.db.flush()
