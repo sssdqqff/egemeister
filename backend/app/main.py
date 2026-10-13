@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from app.config import settings
 
 from app.routers.subject_router import router as subject_router
@@ -10,6 +12,8 @@ from app.routers.session_router import router as session_router
 from app.routers.attempt_router import router as attempt_router
 from app.routers.profile_router import router as profile_router
 from app.routers.user_router import router as user_router
+from app.routers.auth_router import router as auth_router
+from app.routers.bot_router import router as bot_router
 
 app = FastAPI(
     title=settings.app_name,
@@ -25,6 +29,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+TRUSTED_ORIGINS = set(settings.cors_origins + settings.api_origins)
+
+
+@app.middleware("http")
+async def check_origin(request: Request, call_next):
+    if request.method in UNSAFE_METHODS:
+        origin = request.headers.get("origin")
+        if origin and origin not in TRUSTED_ORIGINS:
+            return JSONResponse(status_code=403, content={"detail": "Origin not allowed"})
+    return await call_next(request)
 
 
 @app.get("/")
@@ -45,3 +61,5 @@ app.include_router(session_router)
 app.include_router(attempt_router)
 app.include_router(profile_router)
 app.include_router(user_router)
+app.include_router(auth_router)
+app.include_router(bot_router)

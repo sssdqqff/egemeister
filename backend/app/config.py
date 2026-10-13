@@ -54,5 +54,12 @@ class Settings(BaseSettings):
     cookie_secure: bool = True
     cookie_samesite: str = "lax"
 
+    login_max_failures: int = 5
+    login_failure_window_seconds: int = 300
+    api_origins: list[str] = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+
 
 settings = Settings()
