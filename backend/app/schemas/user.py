@@ -22,12 +22,13 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
-    username: str
-    email: EmailStr
+    telegram_id: int | None = None
+    first_name: str | None = None
+    username: str | None = None
+    email: EmailStr | None = None
     is_active: bool
     role: UserRole
     created_at: datetime
-    last_login: datetime | None = Field(None)
 
     model_config = ConfigDict(from_attributes=True)
 
