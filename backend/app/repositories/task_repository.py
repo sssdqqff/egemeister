@@ -7,6 +7,8 @@ from sqlalchemy.orm import selectinload
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
 
+from app.models.attempt import Attempt
+
 
 class TaskRepository:
     def __init__(self, db: AsyncSession):
@@ -92,3 +94,12 @@ class TaskRepository:
         task.is_active = False
         await self.db.flush()
         return True
+
+    async def has_attempts(self, task_id: int) -> bool:
+        stmt = select(Attempt.id).where(Attempt.task_id == task_id).limit(1)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def delete_task_permanently(self, task: Task) -> None:
+        await self.db.delete(task)
+        await self.db.flush()

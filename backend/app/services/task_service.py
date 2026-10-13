@@ -107,3 +107,22 @@ class TaskService:
         if not deactivated:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
         await self.db.commit()
+
+    async def delete_task_permanently(self, task_id: int) -> None:
+        task = await self.task_repository.get_by_id(task_id)
+        if not task:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        if await self.task_repository.has_attempts(task_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete task with existing attempts"
+            )
+        try:
+            await self.task_repository.delete_task_permanently(task)
+            await self.db.commit()
+        except IntegrityError:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot permanently delete task because it has related records"
+            )

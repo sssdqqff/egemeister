@@ -36,3 +36,11 @@ async def update_task(task_id: int, task_data: TaskUpdate, service: TaskService 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(task_id: int, service: TaskService = Depends(get_task_service)):
     await service.delete_task(task_id)
+
+
+@router.delete("/{task_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_task_permanently(
+    task_id: int,
+    service: TaskService = Depends(get_task_service),
+) -> None:
+    await service.delete_task_permanently(task_id)
