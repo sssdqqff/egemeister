@@ -28,7 +28,7 @@ async def get_attempt_by_id(
     user: User = Depends(get_current_user),
     service: AttemptService = Depends(get_attempt_service),
 ):
-    return await service.get_user_attempt_by_id(attempt_id, user.id)
+    return await service.get_attempt_by_id(attempt_id, user.id)
 
 
 @router.post("", response_model=AttemptResponse, status_code=status.HTTP_201_CREATED)
@@ -37,4 +37,4 @@ async def create_attempt(
     user: User = Depends(get_current_user),
     service: AttemptService = Depends(get_attempt_service),
 ):
-    return await service.create_attempt(user.id, attempt_data)
+    return await service.submit_attempt(user.id, attempt_data)
