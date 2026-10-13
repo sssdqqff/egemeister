@@ -49,15 +49,36 @@ class PrototypeService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prototype not found")
         return PrototypeResponse.model_validate(prototype)
 
-    async def delete_prototype(self, prototype_id: int) -> None:
+    
+    async def deactivate_prototype(self, prototype_id: int) -> None:
+        deactivated = await self.prototype_repository.deactivate_prototype(prototype_id)
+        if not deactivated:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prototype not found")
+        await self.db.commit()
+
+
+    async def activate_prototype(self, prototype_id: int) -> None:
+        activated = await self.prototype_repository.activate_prototype(prototype_id)
+        if not activated:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prototype not found")
+        await self.db.commit()
+
+
+    async def delete_prototype_permanently(self, prototype_id: int) -> None:
+        prototype = await self.prototype_repository.get_by_id(prototype_id)
+        if not prototype:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prototype not found")
+        if await self.prototype_repository.has_tasks(prototype_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Prototype has tasks and cannot be deleted",
+            )
         try:
-            deleted = await self.prototype_repository.delete_prototype(prototype_id)
+            await self.prototype_repository.delete_prototype_permanently(prototype_id)
             await self.db.commit()
         except IntegrityError:
             await self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Prototype has tasks and cannot be deleted",
+                detail="Prototype is referenced by other records and cannot be deleted",
             )
-        if not deleted:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prototype not found")

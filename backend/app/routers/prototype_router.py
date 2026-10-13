@@ -35,4 +35,14 @@ async def update_prototype(prototype_id: int, prototype_data: PrototypeUpdate, s
 
 @router.delete("/{prototype_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_prototype(prototype_id: int, service: PrototypeService = Depends(get_prototype_service)):
-    await service.delete_prototype(prototype_id)
+    await service.deactivate_prototype(prototype_id)
+
+
+@router.patch("/{prototype_id}/activate", status_code=status.HTTP_204_NO_CONTENT)
+async def activate_prototype(prototype_id: int, service: PrototypeService = Depends(get_prototype_service)):
+    await service.activate_prototype(prototype_id)
+
+
+@router.delete("/{prototype_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_prototype_permanently(prototype_id: int, service: PrototypeService = Depends(get_prototype_service)):
+    await service.delete_prototype_permanently(prototype_id)

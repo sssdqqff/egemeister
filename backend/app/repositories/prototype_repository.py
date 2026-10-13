@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.prototype import Prototype
 from app.schemas.prototype import PrototypeCreate, PrototypeUpdate
 
+from app.models.task import Task
+
 
 class PrototypeRepository:
     def __init__(self, db: AsyncSession):
@@ -43,6 +45,19 @@ class PrototypeRepository:
         return prototype
 
     async def delete_prototype(self, prototype_id: int) -> bool:
+        prototype = await self.get_by_id(prototype_id)
+        if not prototype:
+            return False
+        await self.db.delete(prototype)
+        await self.db.flush()
+        return True
+
+    async def has_tasks(self, prototype_id: int) -> bool:
+        stmt = select(Task.id).where(Task.prototype_id == prototype_id).limit(1)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def delete_prototype_permanently(self, prototype_id: int) -> bool:
         prototype = await self.get_by_id(prototype_id)
         if not prototype:
             return False

@@ -24,5 +24,6 @@ class PrototypeResponse(BaseModel):
     code: str
     description: str | None
     exam_number: int
+    is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
