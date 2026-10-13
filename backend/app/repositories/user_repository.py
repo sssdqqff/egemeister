@@ -88,3 +88,14 @@ class UserRepository:
         user.is_active = False
         await self.db.flush()
         return True
+
+    async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+        result = await self.db.execute(select(User).where(User.telegram_id == telegram_id))
+        return result.scalar_one_or_none()
+
+    async def create_telegram_user(self, telegram_id: int, first_name: Optional[str] = None) -> User:
+        new_user = User(telegram_id=telegram_id, first_name=first_name)
+        self.db.add(new_user)
+        await self.db.flush()
+        await self.db.refresh(new_user)
+        return new_user

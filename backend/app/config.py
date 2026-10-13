@@ -45,5 +45,14 @@ class Settings(BaseSettings):
     static_dir: str = "static"
     images_dir: str = "static/images"
 
+    # telegram auth
+    bot_api_key: str
+    login_code_length: int = 6
+    login_code_ttl_seconds: int = 300
+    session_ttl_days: int = 30
+    session_cookie_name: str = "egemeister_session"
+    cookie_secure: bool = True
+    cookie_samesite: str = "lax"
+
 
 settings = Settings()
