@@ -95,6 +95,14 @@ class TaskRepository:
         await self.db.flush()
         return True
 
+    async def activate_task(self, task_id: int) -> bool:
+        task = await self.get_by_id(task_id)
+        if not task:
+            return False
+        task.is_active = True
+        await self.db.flush()
+        return True
+
     async def has_attempts(self, task_id: int) -> bool:
         stmt = select(Attempt.id).where(Attempt.task_id == task_id).limit(1)
         result = await self.db.execute(stmt)

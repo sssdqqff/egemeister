@@ -38,6 +38,14 @@ async def delete_task(task_id: int, service: TaskService = Depends(get_task_serv
     await service.delete_task(task_id)
 
 
+@router.patch("/{task_id}/activate", status_code=status.HTTP_204_NO_CONTENT)
+async def activate_task(
+    task_id: int,
+    service: TaskService = Depends(get_task_service),
+):
+    await service.activate_task(task_id)
+
+
 @router.delete("/{task_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task_permanently(
     task_id: int,

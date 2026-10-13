@@ -108,6 +108,15 @@ class TaskService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
         await self.db.commit()
 
+    async def activate_task(self, task_id: int) -> None:
+        activated = await self.task_repository.activate_task(task_id)
+        if not activated:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task not found",
+            )
+        await self.db.commit()
+
     async def delete_task_permanently(self, task_id: int) -> None:
         task = await self.task_repository.get_by_id(task_id)
         if not task:
