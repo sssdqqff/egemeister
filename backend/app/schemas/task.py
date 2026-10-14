@@ -26,7 +26,6 @@ class TaskUpdate(BaseModel):
 class TaskResponse(BaseModel):
     id: int
     condition: str
-    answer: str
     difficulty: Literal["easy", "medium", "hard"]
     is_active: bool
     topic_id: int

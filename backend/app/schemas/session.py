@@ -18,7 +18,7 @@ class SessionUpdate(BaseModel):
 class SessionResponse(BaseModel):
     id: int = Field(..., description="Session ID")
     user_id: int = Field(..., description="User ID")
-    type: SessionType = Field(..., description="Session type")
+    type: SessionType = Field(..., validation_alias="session_type", description="Session type")
     status: SessionStatus = Field(..., description="Session status")
     created_at: datetime = Field(..., description="Creation time")
     finished_at: datetime | None = Field(None, description="Finish time")
