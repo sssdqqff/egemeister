@@ -82,3 +82,12 @@ async def finish_session(
     service: SessionService = Depends(get_session_service),
 ):
     return await service.finish_session(session_id, user.id)
+
+
+@router.patch("/{session_id}/abandon", response_model=SessionResponse)
+async def abandon_session(
+    session_id: int,
+    user: User = Depends(get_current_user),
+    service: SessionService = Depends(get_session_service),
+):
+    return await service.abandon_session(session_id, user.id)
