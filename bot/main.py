@@ -16,11 +16,18 @@ class Settings(BaseSettings):
     bot_token: str
     bot_api_key: str
     api_base_url: str = "http://127.0.0.1:8000"
-    frontend_url: str = "http://localhost:5173/auth"
+    site_url: str = ""
 
 
 settings = Settings()
 dp = Dispatcher()
+
+
+def build_keyboard(code: str) -> InlineKeyboardMarkup | None:
+    if not settings.site_url.startswith("https://"):
+        return None
+    url = f"{settings.site_url.rstrip('/')}/#code={code}"
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔑 Войти на сайт", url=url)]])
 
 
 @dp.message(CommandStart(), F.chat.type == "private")
@@ -43,14 +50,10 @@ async def handle_start(message: Message, http: httpx.AsyncClient) -> None:
         return
     data = response.json()
     minutes = max(data["expires_in"] // 60, 1)
-    login_url = f"{settings.frontend_url}?code={data['code']}"
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🔑 Войти на сайт", url=login_url)]
-        ]
-    )
+    keyboard = build_keyboard(data["code"])
+    hint = "Нажмите на код, чтобы скопировать" + (", или на кнопку ниже." if keyboard else ".")
     await message.answer(
-        f"Нажмите кнопку ниже для входа на сайт. Ссылка действительна {minutes} мин.",
+        f"🔑 Ваш код для входа:\n\n<code>{data['code']}</code>\n\n{hint} Он действителен {minutes} мин.",
         reply_markup=keyboard,
     )
 
