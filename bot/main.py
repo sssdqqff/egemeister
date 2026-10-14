@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     bot_token: str
     bot_api_key: str
     api_base_url: str = "http://127.0.0.1:8000"
+    frontend_url: str = "http://localhost:5173/auth"
 
 
 settings = Settings()
@@ -42,9 +43,15 @@ async def handle_start(message: Message, http: httpx.AsyncClient) -> None:
         return
     data = response.json()
     minutes = max(data["expires_in"] // 60, 1)
+    login_url = f"{settings.frontend_url}?code={data['code']}"
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔑 Войти на сайт", url=login_url)]
+        ]
+    )
     await message.answer(
-        f"🔑 Ваш код для входа:\n\n<code>{data['code']}</code>\n\n"
-        f"Нажмите на код, чтобы скопировать. Он действителен {minutes} мин."
+        f"Нажмите кнопку ниже для входа на сайт. Ссылка действительна {minutes} мин.",
+        reply_markup=keyboard,
     )
 
 
