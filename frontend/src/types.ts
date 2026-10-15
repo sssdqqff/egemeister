@@ -8,3 +8,11 @@ export interface User {
   role: 'user' | 'admin'
   created_at: string
 }
+
+export interface Subject {
+  id: number
+  name: string
+  slug: string
+  description: string
+  is_active: boolean
+}
