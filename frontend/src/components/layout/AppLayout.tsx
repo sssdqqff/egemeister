@@ -142,19 +142,29 @@ export function AppLayout() {
           </nav>
 
           <div className="app-header-right">
-            <span className="app-greeting">Привет, 🇺🇸!</span>
+            <div
+              className="app-streak-badge"
+              aria-label="Серия: 5 дней подряд"
+            >
+            </div>
 
             <div className="app-level-wrapper">
               <Link
                 to="/profile"
                 className="app-level-badge"
-                aria-label="Уровень 12 — открыть профиль"
+                aria-label="Уровень 12 — 340 из 500 XP"
               >
-                <span
-                  className="app-level-progress"
-                  style={{ width: '68%' }}
-                />
-                <span className="app-level-label">LVL 12</span>
+                <span className="app-level-badge-main">
+                  <span className="app-level-label">LVL 12</span>
+                  <span className="app-level-xp">340 / 500 XP</span>
+                </span>
+
+                <span className="app-level-track">
+                  <span
+                    className="app-level-progress"
+                    style={{ width: '68%' }}
+                  />
+                </span>
               </Link>
 
               <div className="app-level-tooltip" role="tooltip">

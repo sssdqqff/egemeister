@@ -1,11 +1,12 @@
-
 import { Navigate, Route, Routes } from 'react-router'
+import { LogOut } from 'lucide-react'
 import { useAuth } from './auth/authContext'
 import { AppLayout } from './components/layout/AppLayout'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import PracticePage from './pages/PracticePage'
 import SubjectPage from './pages/SubjectPage'
+import ProfilePage from './pages/ProfilePage'
 
 function PlaceholderPage({
   title,
@@ -46,6 +47,7 @@ function SettingsPage() {
           className="home-button"
           onClick={() => void logout()}
         >
+          <LogOut size={16} strokeWidth={1.8} />
           Выйти из аккаунта
         </button>
       </div>
@@ -68,7 +70,6 @@ export default function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
-
         <Route path="tasks" element={<PracticePage />} />
 
         <Route
@@ -106,18 +107,8 @@ export default function App() {
           element={<SubjectPage />}
         />
 
-        <Route
-          path="profile"
-          element={
-            <PlaceholderPage
-              title="Профиль"
-              description="Здесь появятся твой опыт, уровень и статистика обучения."
-            />
-          }
-        />
-
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
-
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

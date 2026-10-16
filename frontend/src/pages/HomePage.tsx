@@ -1,6 +1,17 @@
-
+import { useAuth } from '../auth/authContext'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import {
+  Swords,
+  ListChecks,
+  Zap,
+  ArrowRight,
+  Target,
+  CalendarDays,
+  Flame,
+  Trophy,
+  Check,
+} from 'lucide-react'
 
 type SubjectKey = 'informatics' | 'mathematics'
 
@@ -30,26 +41,39 @@ const activityColors = [
   '#F4C34F',
 ]
 
-const examDates: ExamMarker[] = []
+const examDates: ExamMarker[] = [
+  { date: '2027-05-27', subject: 'informatics', title: 'ЕГЭ по информатике' },
+  { date: '2027-06-01', subject: 'mathematics', title: 'ЕГЭ по математике' },
+]
 
 const challenges = {
   informatics: {
     subject: 'Информатика',
     topic: 'Системы счисления',
-    description: 'Реши три задания и проверь, насколько уверенно работаешь с разными основаниями систем счисления.',
+    description:
+      'Реши три задания и проверь, насколько уверенно работаешь с разными основаниями систем счисления.',
     tag: 'ТРЕНАЖЁР · ИНФОРМАТИКА',
   },
   mathematics: {
     subject: 'Математика',
     topic: 'Уравнения',
-    description: 'Реши три задания на уравнения и закрепи навыки решения задач профильного ЕГЭ.',
+    description:
+      'Реши три задания на уравнения и закрепи навыки решения задач профильного ЕГЭ.',
     tag: 'ТРЕНАЖЁР · МАТЕМАТИКА',
   },
 }
 
 const goals = {
-  informatics: { subject: 'Информатика', target: 100, lastScore: 76 },
-  mathematics: { subject: 'Математика', target: 80, lastScore: 62 },
+  informatics: {
+    subject: 'Информатика',
+    target: 100,
+    scores: [62, 68, 71, 76],
+  },
+  mathematics: {
+    subject: 'Математика',
+    target: 80,
+    scores: [48, 54, 58, 62],
+  },
 }
 
 function dateKey(date: Date) {
@@ -68,8 +92,9 @@ function formatActivityDate(date: Date) {
 }
 
 export default function HomePage() {
-  const [challengeSubject, setChallengeSubject] = useState<SubjectKey>('informatics')
-  const [goalSubject, setGoalSubject] = useState<SubjectKey>('informatics')
+  const { user } = useAuth()
+  const [selectedSubject, setSelectedSubject] =
+    useState<SubjectKey>('informatics')
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null)
   const [hoveredCell, setHoveredCell] = useState<{
     key: string
@@ -80,8 +105,17 @@ export default function HomePage() {
 
   const activityData = useMemo(() => {
     const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12)
-    const startYear = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1
+    const today = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      12,
+    )
+    const startYear =
+      today.getMonth() >= 6
+        ? today.getFullYear()
+        : today.getFullYear() - 1
+
     const seasonStart = new Date(startYear, 6, 1, 12)
     const seasonEnd = new Date(startYear + 1, 5, 30, 12)
 
@@ -93,7 +127,6 @@ export default function HomePage() {
 
     const days: ActivityDay[] = []
 
-    // Пока история активности не подключена к API, все показатели равны нулю.
     for (
       const cursor = new Date(gridStart);
       cursor <= gridEnd;
@@ -132,7 +165,9 @@ export default function HomePage() {
       )
 
       return {
-        label: date.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', ''),
+        label: date
+          .toLocaleDateString('ru-RU', { month: 'short' })
+          .replace('.', ''),
         column: Math.floor(offsetDays / 7) + 1,
       }
     })
@@ -152,16 +187,38 @@ export default function HomePage() {
     ? activityDays.find((day) => day.key === hoveredCell.key)
     : undefined
 
-  const challenge = challenges[challengeSubject]
-  const goal = goals[goalSubject]
-  const goalProgress = Math.min(100, Math.round((goal.lastScore / goal.target) * 100))
+  const challenge = challenges[selectedSubject]
+  const goal = goals[selectedSubject]
+  const lastScore = goal.scores[goal.scores.length - 1] ?? 0
+  const minScore = Math.min(...goal.scores)
+  const maxScore = Math.max(...goal.scores)
+  const scoreRange = maxScore - minScore || 1
 
-  const showActivityTooltip = (day: ActivityDay, element: HTMLButtonElement) => {
+  const chartPoints = goal.scores.map((score, index) => ({
+    x: 20 + index * 92,
+    y: 82 - ((score - minScore) / scoreRange) * 48,
+    score,
+    index,
+  }))
+
+  const chartPath = chartPoints
+    .map((point, index) =>
+      `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`,
+    )
+    .join(' ')
+
+  const showActivityTooltip = (
+    day: ActivityDay,
+    element: HTMLButtonElement,
+  ) => {
     const rect = element.getBoundingClientRect()
 
     setHoveredCell({
       key: day.key,
-      x: Math.max(130, Math.min(rect.left + rect.width / 2, window.innerWidth - 130)),
+      x: Math.max(
+        130,
+        Math.min(rect.left + rect.width / 2, window.innerWidth - 130),
+      ),
       y: rect.top,
       below: rect.top < 110,
     })
@@ -169,48 +226,54 @@ export default function HomePage() {
 
   return (
     <div className="dashboard-page">
-      <div className="dashboard-heading">
-        <div className="home-accent-line" />
-        <h1 className="home-title">Твой прогресс</h1>
-        <p className="home-description">
-          Каждое решённое задание приближает тебя к цели.
-        </p>
+      <div className="dashboard-topline">
+        <div className="dashboard-heading">
+          <h1 className="home-title">Привет, {user?.first_name ?? 'ученик'}!</h1>
+          <p className="home-description">
+            Реши одно задание сегодня, чтобы не потерять серию.
+          </p>
+        </div>
+
+        <div
+          className="dashboard-switch dashboard-global-switch"
+          aria-label="Выбор предмета"
+        >
+          <span
+            className={`dashboard-switch-indicator ${
+              selectedSubject === 'mathematics' ? 'is-right' : ''
+            }`}
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            className={selectedSubject === 'informatics' ? 'is-selected' : ''}
+            aria-pressed={selectedSubject === 'informatics'}
+            onClick={() => setSelectedSubject('informatics')}
+          >
+            Информатика
+          </button>
+          <button
+            type="button"
+            className={selectedSubject === 'mathematics' ? 'is-selected' : ''}
+            aria-pressed={selectedSubject === 'mathematics'}
+            onClick={() => setSelectedSubject('mathematics')}
+          >
+            Математика
+          </button>
+        </div>
       </div>
 
       <div className="dashboard-grid">
         <section className="dashboard-card challenge-card">
           <div className="dashboard-card-heading">
             <div className="dashboard-icon is-red">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m14 7 3-3 3 3-3 3M4 20l8-8M7 5l12 12M5 7l2-2 12 12-2 2Z" />
-              </svg>
+              <Swords size={22} strokeWidth={1.8} aria-hidden="true" />
             </div>
             <div className="dashboard-card-title">
               <span className="dashboard-eyebrow">ЕЖЕДНЕВНОЕ ИСПЫТАНИЕ</span>
               <h2>Челлендж дня</h2>
             </div>
             <span className="dashboard-reward">+ XP</span>
-          </div>
-
-          <div className="dashboard-switch" aria-label="Предмет челленджа">
-            <span
-              className={`dashboard-switch-indicator ${challengeSubject === 'mathematics' ? 'is-right' : ''}`}
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className={challengeSubject === 'informatics' ? 'is-selected' : ''}
-              onClick={() => setChallengeSubject('informatics')}
-            >
-              Информатика
-            </button>
-            <button
-              type="button"
-              className={challengeSubject === 'mathematics' ? 'is-selected' : ''}
-              onClick={() => setChallengeSubject('mathematics')}
-            >
-              Математика
-            </button>
           </div>
 
           <div className="challenge-content">
@@ -221,130 +284,154 @@ export default function HomePage() {
 
           <div className="challenge-footer">
             <span className="dashboard-meta">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-              </svg>
+              <ListChecks size={16} strokeWidth={1.8} aria-hidden="true" />
               3 задания
             </span>
             <span className="dashboard-meta is-gold">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m13 2-3 8h7l-6 12 1-9H6l7-11Z" />
-              </svg>
+              <Zap size={16} strokeWidth={1.8} aria-hidden="true" />
               Бонус XP
             </span>
           </div>
 
           <Link
             className="dashboard-primary-button"
-            to={`/tasks?subject=${challengeSubject}&challenge=daily`}
+            to={`/tasks?subject=${selectedSubject}&challenge=daily`}
           >
             Начать челлендж
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
           </Link>
         </section>
 
-        <section className="dashboard-card goal-card">
+        <section
+          className={`dashboard-card goal-card ${
+            selectedSubject === 'mathematics' ? 'is-mathematics' : ''
+          }`}
+        >
           <div className="dashboard-card-heading">
             <div className="dashboard-icon is-gold">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="5" />
-                <circle cx="12" cy="12" r="1" />
-                <path d="m15 9 6-6" />
-              </svg>
+              <Target size={22} strokeWidth={1.8} aria-hidden="true" />
             </div>
             <div className="dashboard-card-title">
               <span className="dashboard-eyebrow">ТВОЯ ЦЕЛЬ</span>
-              <h2>Результат ЕГЭ</h2>
+              <h2>ЕГЭ по {goal.subject.toLowerCase()}</h2>
             </div>
-          </div>
-
-          <div className="dashboard-switch" aria-label="Предмет целевого балла">
-            <span
-              className={`dashboard-switch-indicator ${goalSubject === 'mathematics' ? 'is-right' : ''}`}
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className={goalSubject === 'informatics' ? 'is-selected' : ''}
-              onClick={() => setGoalSubject('informatics')}
-            >
-              Информатика
-            </button>
-            <button
-              type="button"
-              className={goalSubject === 'mathematics' ? 'is-selected' : ''}
-              onClick={() => setGoalSubject('mathematics')}
-            >
-              Математика
-            </button>
           </div>
 
           <div className="goal-score">
             <div>
-              <span className="dashboard-eyebrow">Целевой балл</span>
+              <span className="dashboard-eyebrow">ЦЕЛЕВОЙ БАЛЛ</span>
               <div className="goal-target">
-                {goal.target}<span> / 100</span>
+                {goal.target}
+                <span> / 100</span>
               </div>
             </div>
             <div className="goal-last-score">
-              <span className="dashboard-eyebrow">Последний пробник</span>
-              <strong>{goal.lastScore}</strong>
+              <span className="dashboard-eyebrow">ПОСЛЕДНИЙ ПРОБНИК</span>
+              <strong>{lastScore}</strong>
             </div>
           </div>
 
-          <div
-            className="goal-progress-track"
-            role="progressbar"
-            aria-label={`Результат последнего пробника по предмету ${goal.subject}`}
-            aria-valuemin={0}
-            aria-valuemax={goal.target}
-            aria-valuenow={goal.lastScore}
-          >
-            <div className="goal-progress-fill" style={{ width: `${goalProgress}%` }} />
+          <div className="goal-chart">
+            <div className="goal-chart-heading">
+              <span className="dashboard-eyebrow">ДИНАМИКА ПРОБНИКОВ</span>
+              <span className="goal-chart-subject">{goal.subject}</span>
+            </div>
+
+            <svg
+              className="goal-chart-svg"
+              viewBox="0 0 320 120"
+              role="img"
+              aria-label={`Последние результаты по предмету ${goal.subject}: ${goal.scores.join(', ')} баллов`}
+            >
+              <line
+                x1="12"
+                y1="96"
+                x2="308"
+                y2="96"
+                className="goal-chart-axis"
+              />
+              <path d={chartPath} className="goal-chart-line" />
+
+              {chartPoints.map((point) => (
+                <g key={`${selectedSubject}-${point.index}`}>
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r="4"
+                    className="goal-chart-point"
+                  />
+                  <text
+                    x={point.x}
+                    y={point.y - 11}
+                    className={`goal-chart-score ${
+                      point.index === chartPoints.length - 1 ? 'is-latest' : ''
+                    }`}
+                    textAnchor="middle"
+                  >
+                    {point.score}
+                  </text>
+                  <text
+                    x={point.x}
+                    y="113"
+                    className="goal-chart-index"
+                    textAnchor="middle"
+                  >
+                    {point.index + 1}
+                  </text>
+                </g>
+              ))}
+            </svg>
           </div>
 
           <div className="goal-progress-caption">
             <span>Последний результат</span>
-            <strong>До цели: {Math.max(0, goal.target - goal.lastScore)} баллов</strong>
+            <strong>
+              {lastScore >= goal.target
+                ? 'Цель достигнута'
+                : `До цели: ${goal.target - lastScore} баллов`}
+            </strong>
           </div>
 
           <Link to="/profile" className="dashboard-text-link">
             Мой план подготовки
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
           </Link>
         </section>
 
         <section className="dashboard-card activity-card">
           <div className="dashboard-card-heading activity-heading">
             <div className="dashboard-icon is-gold">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3" y="4" width="18" height="17" rx="2" />
-                <path d="M16 2v4M8 2v4M3 9h18" />
-              </svg>
+              <CalendarDays size={22} strokeWidth={1.8} aria-hidden="true" />
             </div>
             <div className="dashboard-card-title">
               <h2>Активность</h2>
               <p>Учебный сезон {activityData.seasonLabel} · июль — июнь</p>
             </div>
-            <div className="activity-legend">
-              <span>Меньше XP</span>
-              {activityColors.map((color) => (
-                <span
-                  key={color}
-                  className="activity-legend-cell"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-              <span>Больше</span>
-            </div>
           </div>
 
           <div className="activity-content">
+            <div className="activity-streaks">
+              <div className="activity-streak activity-streak-current">
+                <span className="activity-streak-icon is-current">
+                  <Flame size={20} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <div className="activity-streak-info">
+                  <span className="activity-streak-label">Текущая серия</span>
+                  <strong>5 <span>дней</span></strong>
+                </div>
+              </div>
+
+              <div className="activity-streak activity-streak-record">
+                <span className="activity-streak-icon is-record">
+                  <Trophy size={20} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <div className="activity-streak-info">
+                  <span className="activity-streak-label">Личный рекорд</span>
+                  <strong>12 <span>дней</span></strong>
+                </div>
+              </div>
+            </div>
+
             <div className="activity-grid-wrap">
               <div className="activity-months" aria-hidden="true">
                 {activityData.months.map((month, index) => (
@@ -357,7 +444,10 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <div className="activity-grid" aria-label="Календарь активности за учебный сезон">
+              <div
+                className="activity-grid"
+                aria-label="Календарь активности за учебный сезон"
+              >
                 {activityDays.map((day, index) => {
                   const examClass = day.exam
                     ? day.exam.subject === 'mathematics'
@@ -372,10 +462,12 @@ export default function HomePage() {
                     !day.isInSeason ? 'is-outside-season' : '',
                     day.isFuture && !day.exam ? 'is-future' : '',
                     examClass,
-                  ].filter(Boolean).join(' ')
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
 
                   const title = day.exam
-                    ? `${formatActivityDate(day.date)} · ${day.solved} заданий · ${day.xp} XP · ${day.exam.title}`
+                    ? `${formatActivityDate(day.date)} · ${day.exam.title} · ${day.solved} заданий · ${day.xp} XP`
                     : `${formatActivityDate(day.date)} · ${day.solved} заданий · ${day.xp} XP`
 
                   return (
@@ -386,15 +478,23 @@ export default function HomePage() {
                       style={{
                         gridColumn: Math.floor(index / 7) + 1,
                         gridRow: day.date.getDay() + 1,
-                        backgroundColor: day.isInSeason
-                          ? activityColors[day.level]
-                          : 'transparent',
+                        backgroundColor: day.exam
+                          ? day.exam.subject === 'informatics'
+                            ? '#2868A5'
+                            : '#A3D977'
+                          : day.isInSeason
+                            ? activityColors[day.level]
+                            : 'transparent',
                       }}
                       aria-label={title}
                       disabled={!day.isInSeason || (day.isFuture && !day.exam)}
-                      onMouseEnter={(event) => showActivityTooltip(day, event.currentTarget)}
+                      onMouseEnter={(event) =>
+                        showActivityTooltip(day, event.currentTarget)
+                      }
                       onMouseLeave={() => setHoveredCell(null)}
-                      onFocus={(event) => showActivityTooltip(day, event.currentTarget)}
+                      onFocus={(event) =>
+                        showActivityTooltip(day, event.currentTarget)
+                      }
                       onBlur={() => setHoveredCell(null)}
                       onClick={() => {
                         setSelectedDayKey(day.key)
@@ -408,7 +508,9 @@ export default function HomePage() {
 
             {hoveredDay && hoveredCell && (
               <div
-                className={`activity-hover-tooltip${hoveredCell.below ? ' is-below' : ''}`}
+                className={`activity-hover-tooltip${
+                  hoveredCell.below ? ' is-below' : ''
+                }`}
                 style={{
                   left: hoveredCell.x,
                   top: hoveredCell.y,
@@ -427,6 +529,18 @@ export default function HomePage() {
                   {formatActivityDate(hoveredDay.date)}
                 </strong>
 
+                {hoveredDay.exam && (
+                  <span
+                    className={`activity-selected-exam ${
+                      hoveredDay.exam.subject === 'mathematics'
+                        ? 'is-math'
+                        : 'is-informatics'
+                    }`}
+                  >
+                    {hoveredDay.exam.title}
+                  </span>
+                )}
+
                 <div className="activity-tooltip-stat">
                   <span className="activity-tooltip-dot is-red" />
                   {hoveredDay.solved} заданий решено
@@ -442,26 +556,32 @@ export default function HomePage() {
                     Активности не было
                   </span>
                 )}
-
-                {hoveredDay.exam && (
-                  <span
-                    className={`activity-selected-exam ${hoveredDay.exam.subject === 'mathematics' ? 'is-math' : 'is-informatics'}`}
-                  >
-                    {hoveredDay.exam.title}
-                  </span>
-                )}
               </div>
             )}
 
-            <div className="activity-exam-legend">
-              <span>
-                <i className="activity-exam-dot is-math" />
-                ЕГЭ по математике
-              </span>
-              <span>
-                <i className="activity-exam-dot is-informatics" />
-                ЕГЭ по информатике
-              </span>
+            <div className="activity-bottom-legend">
+              <div className="activity-exam-legend">
+                <span>
+                  <i className="activity-exam-dot is-informatics" />
+                  ЕГЭ по информатике
+                </span>
+                <span>
+                  <i className="activity-exam-dot is-math" />
+                  ЕГЭ по математике
+                </span>
+              </div>
+
+              <div className="activity-legend">
+                <span>Меньше</span>
+                {activityColors.map((color) => (
+                  <span
+                    key={color}
+                    className="activity-legend-cell"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                <span>Больше</span>
+              </div>
             </div>
 
             <div className="activity-details">
@@ -489,9 +609,7 @@ export default function HomePage() {
               <div className="activity-today-stats">
                 <div className="activity-today-stat">
                   <span className="activity-stat-icon is-red">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m5 12 4 4L19 6" />
-                    </svg>
+                    <Check size={18} strokeWidth={2} aria-hidden="true" />
                   </span>
                   <div>
                     <strong>{activeDay.solved}</strong>
@@ -501,9 +619,7 @@ export default function HomePage() {
 
                 <div className="activity-today-stat">
                   <span className="activity-stat-icon is-gold">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m13 2-3 8h7l-6 12 1-9H6l7-11Z" />
-                    </svg>
+                    <Zap size={18} strokeWidth={1.8} aria-hidden="true" />
                   </span>
                   <div>
                     <strong className="is-gold">+{activeDay.xp}</strong>
@@ -514,7 +630,11 @@ export default function HomePage() {
 
               {activeDay.exam && (
                 <div
-                  className={`activity-selected-exam ${activeDay.exam.subject === 'mathematics' ? 'is-math' : 'is-informatics'}`}
+                  className={`activity-selected-exam ${
+                    activeDay.exam.subject === 'mathematics'
+                      ? 'is-math'
+                      : 'is-informatics'
+                  }`}
                 >
                   {activeDay.exam.title}
                 </div>

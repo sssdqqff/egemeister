@@ -1,22 +1,13 @@
-
 import { Link } from 'react-router'
+import { Code2, Calculator } from 'lucide-react'
+import { getRankForLevel, subjects } from '../data/subjects'
 
-const subjects = [
-  {
-    slug: 'informatics',
-    name: 'Информатика',
-    description: 'Алгоритмы, прототипы и сложные задачи. Оттачивай навыки и зарабатывай XP за каждое решение.',
-    tierImage: '/diamond.png',
-    accent: 'red',
-  },
-  {
-    slug: 'mathematics',
-    name: 'Математика',
-    description: 'Профильный ЕГЭ, математические задачи и испытания, которые прокачивают твою логику.',
-    tierImage: '/platinum.png',
-    accent: 'gold',
-  },
-]
+const subjectDescriptions = {
+  informatics:
+    'Алгоритмы, прототипы и сложные задачи. Оттачивай навыки и зарабатывай XP за каждое решение.',
+  mathematics:
+    'Профильный ЕГЭ, математические задачи и испытания, которые прокачивают твою логику.',
+}
 
 export default function PracticePage() {
   return (
@@ -30,31 +21,45 @@ export default function PracticePage() {
       </header>
 
       <div className="practice-subject-grid">
-        {subjects.map((subject) => (
-          <Link
-            key={subject.slug}
-            to={`/tasks/${subject.slug}`}
-            className={`practice-subject-card is-${subject.accent}`}
-          >
-            <span className="practice-subject-label">
-              ПОДГОТОВКА К ЕГЭ
-            </span>
+        {Object.values(subjects).map((subject) => {
+          const rank = getRankForLevel(subject.level)
+          const SubjectIcon =
+            subject.slug === 'informatics' ? Code2 : Calculator
 
-            <img
-              className="practice-tier-image"
-              src={subject.tierImage}
-              alt="Эмблема текущего тира"
-            />
+          return (
+            <Link
+              key={subject.slug}
+              to={`/tasks/${subject.slug}`}
+              className={`practice-subject-card is-${subject.accent}`}
+            >
+              <span className="practice-subject-label">
+                ПОДГОТОВКА К ЕГЭ
+              </span>
 
-            <div className="practice-subject-title-row">
-              <h2>{subject.name}</h2>
-            </div>
+              <div className="practice-tier-badge">
+                <img
+                  className="practice-tier-image"
+                  src={rank.image}
+                  alt={`${rank.name} tier`}
+                />
+                <span className="practice-tier-level">
+                  {subject.level}
+                </span>
+              </div>
 
-            <p className="practice-subject-description">
-              {subject.description}
-            </p>
-          </Link>
-        ))}
+              <div className="practice-subject-title-row">
+                <span className="practice-subject-icon">
+                  <SubjectIcon size={23} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <h2>{subject.name}</h2>
+              </div>
+
+              <p className="practice-subject-description">
+                {subjectDescriptions[subject.slug]}
+              </p>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
